@@ -1,0 +1,11 @@
+.venv/
+.idea/
+.vscode/
+.idea/
+__pycache__
+*.pyc
+*.pdf
+*.log
+*.xls*
+*.txt
+*.env
