@@ -244,7 +244,7 @@ def process_documents(session, cursor, documents, save_to_pdf, client_folder_pat
     for doc in documents:
         # ### ИСПРАВЛЕНО: Добавлен блок try..except для изоляции ошибок ###
         try:
-            save_document_to_db(cursor, doc)
+            # save_document_to_db(cursor, doc)
 
             if save_to_pdf:
                 doc_uuid = doc.get('doc_uuid')
@@ -255,7 +255,6 @@ def process_documents(session, cursor, documents, save_to_pdf, client_folder_pat
                     logging.warning(f"Пропуск скачивания PDF: не хватает данных. Doc ID: {doc.get('doc_id')}")
                     continue
 
-                logging.info(f"Загрузка PDF для doc_uuid: {doc_uuid}...")
                 pdf_response = session.get(DOWNLOAD_URL_TEMPLATE, params={'gln': SENDER_GLN, 'doc_uuid': doc_uuid, 'format': 'pdf'})
                 pdf_response.raise_for_status()
                 pdf_content = pdf_response.content
@@ -263,6 +262,11 @@ def process_documents(session, cursor, documents, save_to_pdf, client_folder_pat
                 extracted_title = extract_title_from_pdf(pdf_content)
                 final_doc_title = extracted_title or generic_doc_type_desc
                 
+                # ### ИСПРАВЛЕНО: Извлекаем только документы, содержащие "накладна" в названии и не содержащие "транспорт" ###
+                if "накладна" not in final_doc_title.lower() or "транспорт" in final_doc_title.lower():
+                    continue
+                    
+                logging.info(f"Загрузка PDF для doc_uuid: {doc_uuid}...")
                 dt_object = datetime.datetime.fromtimestamp(doc_date_ts)
                 dd_mm_yyyy_str_for_file = dt_object.strftime('%d %m %Y')
                 dd_mm_yyyy_str_for_excel = dt_object.strftime('%d.%m.%Y')
@@ -322,6 +326,7 @@ def create_filenames_log(client_folder_path, filenames):
     except IOError as e:
         logging.error(f"Не удалось создать файл 'documents.log': {e}")
 
+
 def create_client_excel_report(report_data, client_folder_path, client_name, start_date, end_date):
     if not report_data:
         logging.info(f"Нет данных для создания Excel отчета для клиента {client_name}.")
@@ -340,6 +345,7 @@ def create_client_excel_report(report_data, client_folder_path, client_name, sta
     except Exception as e:
         logging.error(f"Не удалось создать Excel-отчет для клиента {client_name}: {e}")
 
+
 def _get_base_partner_list(session):
     logging.info("Шаг 2.1: Получение базового списка GLN всех партнеров...")
     try:
@@ -351,6 +357,7 @@ def _get_base_partner_list(session):
     except Exception as e:
         logging.error(f"Не удалось получить базовый список партнеров: {e}")
         return []
+
 
 def _get_partner_details(session, partner_gln, sender_gln):
     params = {'gln': sender_gln, 'query': partner_gln}
@@ -391,6 +398,7 @@ def get_all_partners_with_details(session, sender_gln):
             
     logging.info(f"Готово к обработке партнеров с детальной информацией: {len(detailed_partners)}")
     return detailed_partners
+
 
 def main(start_date, end_date, save_to_pdf, client_identifier=None):
     conn = get_db_connection()
@@ -481,10 +489,10 @@ def main(start_date, end_date, save_to_pdf, client_identifier=None):
             logging.info("Соединение с PostgreSQL закрыто.")
 
 if __name__ == "__main__":
-    START_DATE = "2024-09-16"
-    END_DATE = "2024-09-30"
+    START_DATE = "2024-09-01"
+    END_DATE = "2025-07-31"
     SAVE_PDF_AND_REPORTS = True
     
-    TARGET_CLIENT_IDENTIFIER = 32490244
+    TARGET_CLIENT_IDENTIFIER = None # 32490244 Epicenter # None - для всех
 
     main(START_DATE, END_DATE, SAVE_PDF_AND_REPORTS, client_identifier=TARGET_CLIENT_IDENTIFIER)
