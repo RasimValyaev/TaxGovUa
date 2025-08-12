@@ -13,20 +13,19 @@ from pdf_scan_detector import main_pdf_scan_detector
 
 
 def get_buyer_code(text):
-    # === ИЩЕМ КОД ПОСЛЕ "ОДЕРЖУВАЧ" ===
-    buyer_code = ""
-    recipient_start = text.find("Одержувач:")
-    if recipient_start == -1:
-        print("Рядок 'Одержувач:' не знайдено")
+    recipient_match = re.search(r'одержувач', text, re.IGNORECASE)
+    if not recipient_match:
+        print("Рядок 'Одержувач' не знайдено")
     else:
-        # Ищем ПЕРВОЕ 8-значное число после "Одержувач:"
-        match = re.search(r'\d{8}', text[recipient_start:])
-        if match:
-            buyer_code = match.group()
-            # print(f"ЄДРПОУ одержувача: {buyer_code}")
+        # Начинаем поиск с позиции после найденного слова
+        start_pos = recipient_match.end()
+        number_match = re.search(r'\d{8}', text[start_pos:])
+        
+        if number_match:
+            return number_match.group()
         else:
             print("Код одержувача не знайдено")
-    return buyer_code
+    return None
 
 
 def is_refused(text):
@@ -41,17 +40,15 @@ def is_buyer_signed(text):
     buyer_code = get_buyer_code(text)
     if not buyer_code: return False  # Если код не найден, сразу возвращаем False
 
-    owner_positions = [m.start() for m in re.finditer(r'Власник', text)]
+    owners = re.finditer(r'власник', text, re.IGNORECASE)
 
-    for i, pos in enumerate(owner_positions, 1):
-        # Ищем ПЕРВОЕ 8-значное число после каждого "Власник"
-        match = re.search(r'\d{8}', text[pos:])
-        if match:
-            current_code = match.group()  # Получаем найденное 8-значное число
-            if current_code == buyer_code:
-                return True
-        else:
-            print(f"{i}. Код не знайдено")
+    for owner_match in owners:
+        # Начинаем поиск с позиции после найденного слова
+        start_pos = owner_match.end()
+        number_match = re.search(r'\d{8}', text[start_pos:])
+        
+        if number_match and number_match.group() == buyer_code:
+            return True
     return False
 
 
@@ -66,6 +63,7 @@ def main_pdf_sign_detector(pdf_file_path):
         return "Refused"
     
     result = is_buyer_signed(text)
+
     if result:
         print("signed")
         return "signed"
@@ -76,12 +74,15 @@ def main_pdf_sign_detector(pdf_file_path):
     
 if __name__ == "__main__":
     # scan
-    pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10663 від 14 09 2024.pdf"     
+    # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10663 від 14 09 2024.pdf"     
     
     # EDI text
     # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10662 від 14 09 2024.pdf" 
     
     # Medoc 3 печати на 1 стр
     # pdf_path = r"C:\Rasim\Python\Medoc\31316718\202411\ПН\ПН 122320 20 11 2024.pdf"
+    
+    # EDIN возврат
+    pdf_path = r"C:\Rasim\Python\TaxGovUa\32490244\202409\Накладна на повернення\Накладна на повернення №Впб_PL-0003587_PL-0035259 від 12 09 2024 NoSign.pdf"
     result = main_pdf_sign_detector(pdf_path)
     print(f"Результат: {result}")

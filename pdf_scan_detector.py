@@ -38,7 +38,8 @@ def extract_text_if_not_scan(pdf_path):
         # Логика: если текст достаточный — добавляем, иначе считаем сканом
         if text_len >= TEXT_THRESHOLD or coverage < IMAGE_COVERAGE:
             collected_texts.append(f"=== Страница {page_number} ===\n{text}")
-
+    
+    doc.close()
     if collected_texts:
         return "\n\n".join(collected_texts)
     else:

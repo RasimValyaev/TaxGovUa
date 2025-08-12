@@ -20,8 +20,9 @@ import psycopg2
 from psycopg2 import sql
 import fitz
 import base64
+import openpyxl
 from GeminiDocSignNo import extract_entity_by_gemini
-
+from pdf_sign_detector import main_pdf_sign_detector
 
 # --- 1. Конфигурация и загрузка переменных окружения ---
 load_dotenv()
@@ -134,6 +135,7 @@ def save_document_to_db(cursor, document_data):
     if cursor.rowcount > 0:
         logging.info(f"Данные для doc_id={flat_data['doc_id']} успешно вставлены/обновлены в БД.")
 
+
 def dump_error_json(documents_to_dump):
     timestamp_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     error_filename = f"error_{timestamp_str}.json"
@@ -144,6 +146,7 @@ def dump_error_json(documents_to_dump):
         logging.info("Файл с ошибкой успешно сохранен.")
     except Exception as e:
         logging.error(f"Не удалось сохранить файл с ошибкой {error_filename}: {e}")
+
 
 def get_sid(session, login, password):
     logging.info("Шаг 1: Получение SID...")
@@ -160,6 +163,7 @@ def get_sid(session, login, password):
     except Exception as e:
         logging.error(f"Критическая ошибка при авторизации: {e}")
         return None
+
 
 def get_documents(session, direction_payload, start_date, end_date):
     try:
@@ -200,7 +204,7 @@ def detect_sign(pdf_path):
     """
     if not os.path.exists(pdf_path):
         logging.error(f"Файл не найден: {pdf_path}")
-        return False
+        return f"{pdf_path} - Файл не найден"
 
     try:
         if "накладна" in pdf_path.lower() and "транспорт" not in pdf_path.lower():
@@ -215,8 +219,13 @@ def detect_sign(pdf_path):
                 
             if is_signed == True or is_signed == "signed":
                 return pdf_path
-            new_file_name = pdf_path.replace('.pdf', " NoSign.pdf")
-            os.rename(pdf_path, new_file_name)
+            new_file_name = pdf_path.replace('.pdf', " NoSign.pdf")            
+            for _ in range(5):
+                try:
+                    os.rename(pdf_path, new_file_name)
+                    return new_file_name
+                except PermissionError:
+                    time.sleep(0.5)            
             return new_file_name            
     except Exception as e:
         logging.error(f"Ошибка при определении подписи в PDF: {e}")
@@ -283,7 +292,7 @@ def process_documents(session, cursor, documents, save_to_pdf, client_folder_pat
                     f.write(pdf_content)
                 abs_full_path = os.path.abspath(full_path)
                 full_path = detect_sign(abs_full_path)
-                file_name = os.path.basename(full_path)
+                file_name = os.path.basename(abs_full_path)
                 downloaded_count += 1
                 downloaded_filenames.append(file_name)
 
@@ -472,10 +481,10 @@ def main(start_date, end_date, save_to_pdf, client_identifier=None):
             logging.info("Соединение с PostgreSQL закрыто.")
 
 if __name__ == "__main__":
-    START_DATE = "2024-09-01"
-    END_DATE = "2024-09-15"
+    START_DATE = "2024-09-16"
+    END_DATE = "2024-09-30"
     SAVE_PDF_AND_REPORTS = True
     
-    TARGET_CLIENT_IDENTIFIER = None
+    TARGET_CLIENT_IDENTIFIER = 32490244
 
     main(START_DATE, END_DATE, SAVE_PDF_AND_REPORTS, client_identifier=TARGET_CLIENT_IDENTIFIER)
