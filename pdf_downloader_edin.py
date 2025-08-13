@@ -21,7 +21,7 @@ from psycopg2 import sql
 import fitz
 import base64
 import openpyxl
-from GeminiDocSignNo import extract_entity_by_gemini
+from pdf_sign_detector_gemini import extract_entity_by_gemini
 from pdf_sign_detector import main_pdf_sign_detector
 
 # --- 1. Конфигурация и загрузка переменных окружения ---
@@ -372,6 +372,7 @@ def _get_partner_details(session, partner_gln, sender_gln):
     except Exception as e:
         logging.warning(f"Не удалось получить детали для GLN {partner_gln}: {e}")
     return None
+
 
 def get_all_partners_with_details(session, sender_gln):
     base_partners = _get_base_partner_list(session)

@@ -9,7 +9,7 @@
 """
 
 import re
-from pdf_scan_detector import main_pdf_scan_detector
+from pdf_scan_detector_by_code import main_pdf_scan_detector
 
 
 def get_buyer_code(text):

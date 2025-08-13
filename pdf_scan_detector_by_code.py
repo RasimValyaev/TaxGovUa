@@ -10,7 +10,7 @@
 import os
 import sys
 import fitz  # PyMuPDF
-
+print(f"fitz.__file__", fitz.__file__)
 
 TEXT_THRESHOLD = 300      # минимум символов для признания страницы текстовой
 IMAGE_COVERAGE = 0.8     # >=80% покрытия изображениями → скан
@@ -56,13 +56,13 @@ def main_pdf_scan_detector(pdf_path):
 
 if __name__ == "__main__":
     # scan
-    pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10663 від 14 09 2024.pdf"     
+    # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10663 від 14 09 2024.pdf"     
     
     # EDI text
     # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10662 від 14 09 2024.pdf" 
     
     # Medoc 3 печати на 1 стр
-    # pdf_path = r"C:\Rasim\Python\Medoc\31316718\202411\ПН\ПН 122320 20 11 2024.pdf"
+    pdf_path = r"C:\Rasim\Python\Medoc\31316718\202411\ПН\ПН 122320 20 11 2024.pdf"
     result = main_pdf_scan_detector(pdf_path)
     print(result)
     

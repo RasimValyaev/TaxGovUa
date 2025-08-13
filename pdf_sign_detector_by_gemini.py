@@ -7,12 +7,14 @@
 """
 
 
+# pip install google-generativeai
 # pip install google-genai
 
 import base64
 import os
 from os.path import exists
 import time
+# import google.generativeai as genai
 from google import genai
 from google.genai import types
 from os.path import exists
@@ -138,9 +140,14 @@ def extract_entity_by_gemini(pdf_path: str=None, pdf_decoded: str=None):
 
 
 if __name__ == "__main__":
+    # EDI refused
     # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\No Sign\Видаткова накладна №10896 від 21 09 2024 Refused.pdf" 
+    
+    # scan
     # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10658 від 14 09 2024.pdf" 
-    # pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10448 від 05 09 2024.pdf" 
-    pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\No Sign\Видаткова накладна №10669 від 14 09 2024 Refused.pdf" 
+    
+    # EDI sign
+    pdf_path = r"c:\Users\Rasim\Desktop\Разблокировка\32490244_ТОВАРИСТВО З ОБМЕЖЕНОЮ ВІДПОВІДАЛЬНІСТЮ ЕПІЦЕНТР К\202409\Видаткова накладна\Видаткова накладна №10448 від 05 09 2024.pdf" 
+    
     result = extract_entity_by_gemini(pdf_path)
     print(result)

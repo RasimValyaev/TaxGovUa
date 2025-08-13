@@ -9,3 +9,4 @@ __pycache__
 *.xls*
 *.txt
 *.env
+!requirements.txt
