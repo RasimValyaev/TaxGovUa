@@ -17,11 +17,9 @@ import json
 from dotenv import load_dotenv
 import pandas as pd
 import psycopg2
-from psycopg2 import sql
 import fitz
-import base64
-import openpyxl
-from pdf_sign_detector_gemini import extract_entity_by_gemini
+import time
+from pdf_sign_detector_by_gemini import extract_entity_by_gemini
 from pdf_sign_detector import main_pdf_sign_detector
 
 # --- 1. Конфигурация и загрузка переменных окружения ---
@@ -106,34 +104,6 @@ def flatten_json(y):
             out[name[:-1]] = x
     flatten(y)
     return out
-
-def save_document_to_db(cursor, document_data):
-    table_name = "t_edin_documents"
-    flat_data = flatten_json(document_data)
-    if 'doc_id' not in flat_data:
-        logging.warning(f"Пропуск сохранения в БД: отсутствует doc_id в документе {document_data.get('doc_uuid')}")
-        return
-    
-    # Ошибка будет проброшена наверх, где ее поймает try-except внутри цикла
-    columns = flat_data.keys()
-    values = [flat_data[key] for key in columns]
-    update_assignments_list = [
-        sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(k), sql.Identifier(k))
-        for k in columns if k != 'doc_id'
-    ]
-    update_assignments_list.append(sql.SQL("updated_at = NOW()"))
-    update_assignments = sql.SQL(', ').join(update_assignments_list)
-    insert_query = sql.SQL(
-        "INSERT INTO {} ({}) VALUES ({}) ON CONFLICT (doc_id) DO UPDATE SET {}"
-    ).format(
-        sql.Identifier(table_name),
-        sql.SQL(', ').join(map(sql.Identifier, columns)),
-        sql.SQL(', ').join(sql.Placeholder() * len(values)),
-        update_assignments
-    )
-    cursor.execute(insert_query, values)
-    if cursor.rowcount > 0:
-        logging.info(f"Данные для doc_id={flat_data['doc_id']} успешно вставлены/обновлены в БД.")
 
 
 def dump_error_json(documents_to_dump):
